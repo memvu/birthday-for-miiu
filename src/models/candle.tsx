@@ -7,12 +7,12 @@ import type { IUniform } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 type CandleProps = ThreeElements["group"] & {
-  isLit?: boolean;
+   isLit?: boolean;
 };
 
 type FlameUniforms = {
-  time: IUniform<number>;
-  strength: IUniform<number>;
+   time: IUniform<number>;
+   strength: IUniform<number>;
 };
 
 const vertexShader = `
@@ -83,93 +83,93 @@ const fragmentShader = `
 `;
 
 export function Candle({ children, isLit = true, ...groupProps }: CandleProps) {
-  const gltf = useLoader(GLTFLoader, "/candle.glb");
-  const candleScene = useMemo<Group | null>(() => gltf.scene?.clone(true) ?? null, [gltf.scene]);
-  const lightRef = useRef<PointLight>(null);
-  const flameMeshRef = useRef<Mesh>(null);
-  const lightStrengthRef = useRef(isLit ? 1 : 0);
+   const gltf = useLoader(GLTFLoader, "/candle.glb");
+   const candleScene = useMemo<Group | null>(() => gltf.scene?.clone(true) ?? null, [gltf.scene]);
+   const lightRef = useRef<PointLight>(null);
+   const flameMeshRef = useRef<Mesh>(null);
+   const lightStrengthRef = useRef(isLit ? 1 : 0);
 
-  const flameUniforms = useMemo<FlameUniforms>(
-    () => ({
-      time: { value: 0 },
-      strength: { value: 1 },
-    }),
-    []
-  );
-
-  const flameMaterial = useMemo(
-    () =>
-      new ShaderMaterial({
-        uniforms: flameUniforms,
-        vertexShader,
-        fragmentShader,
-        transparent: true,
-        side: DoubleSide,
+   const flameUniforms = useMemo<FlameUniforms>(
+      () => ({
+         time: { value: 0 },
+         strength: { value: 1 },
       }),
-    [flameUniforms]
-  );
+      []
+   );
 
-  useEffect(() => {
-    return () => {
-      flameMaterial.dispose();
-    };
-  }, [flameMaterial]);
+   const flameMaterial = useMemo(
+      () =>
+         new ShaderMaterial({
+            uniforms: flameUniforms,
+            vertexShader,
+            fragmentShader,
+            transparent: true,
+            side: DoubleSide,
+         }),
+      [flameUniforms]
+   );
 
-  useEffect(() => {
-    flameUniforms.strength.value = isLit ? 1 : 0;
-    lightStrengthRef.current = isLit ? 1 : 0;
-  }, [isLit, flameUniforms]);
+   useEffect(() => {
+      return () => {
+         flameMaterial.dispose();
+      };
+   }, [flameMaterial]);
 
-  useFrame(({ clock }, delta) => {
-    const elapsed = clock.elapsedTime;
-    flameUniforms.time.value = elapsed;
-    const targetStrength = isLit ? 1 : 0;
-    flameUniforms.strength.value = MathUtils.damp(
-      flameUniforms.strength.value,
-      targetStrength,
-      4,
-      delta
-    );
+   useEffect(() => {
+      flameUniforms.strength.value = isLit ? 1 : 0;
+      lightStrengthRef.current = isLit ? 1 : 0;
+   }, [isLit, flameUniforms]);
 
-    const light = lightRef.current;
-    if (!light) {
-      return;
-    }
-    lightStrengthRef.current = MathUtils.damp(
-      lightStrengthRef.current,
-      targetStrength,
-      4,
-      delta
-    );
+   useFrame(({ clock }, delta) => {
+      const elapsed = clock.elapsedTime;
+      flameUniforms.time.value = elapsed;
+      const targetStrength = isLit ? 1 : 0;
+      flameUniforms.strength.value = MathUtils.damp(
+         flameUniforms.strength.value,
+         targetStrength,
+         4,
+         delta
+      );
 
-    const flicker =
-      Math.sin(elapsed * 10.0) * 0.08 +
-      Math.sin(elapsed * 15.3) * 0.04 +
-      Math.sin(elapsed * 8.7) * 0.03;
+      const light = lightRef.current;
+      if (!light) {
+         return;
+      }
+      lightStrengthRef.current = MathUtils.damp(
+         lightStrengthRef.current,
+         targetStrength,
+         4,
+         delta
+      );
 
-    const strength = flameUniforms.strength.value;
-    light.intensity = Math.max(0, lightStrengthRef.current + flicker * strength * 0.5);
-    light.position.y = 3.5 + Math.sin(elapsed * 5.0) * 0.1;
-    light.position.x = Math.sin(elapsed * 3.0) * 0.05;
-    light.position.z = Math.cos(elapsed * 2.7) * 0.05;
-    light.visible = strength > 0.02;
-    if (flameMeshRef.current) {
-      flameMeshRef.current.visible = strength > 0.02;
-    }
-  });
+      const flicker =
+         Math.sin(elapsed * 10.0) * 0.08 +
+         Math.sin(elapsed * 15.3) * 0.04 +
+         Math.sin(elapsed * 8.7) * 0.03;
 
-  if (!candleScene) {
-    return null;
-  }
+      const strength = flameUniforms.strength.value;
+      light.intensity = 4.0 * Math.max(0, lightStrengthRef.current + flicker * strength * 0.5);
+      light.position.y = 3.5 + Math.sin(elapsed * 5.0) * 0.1;
+      light.position.x = Math.sin(elapsed * 3.0) * 0.05;
+      light.position.z = Math.cos(elapsed * 2.7) * 0.05;
+      light.visible = strength > 0.02;
+      if (flameMeshRef.current) {
+         flameMeshRef.current.visible = strength > 0.02;
+      }
+   });
 
-  return (
-    <group {...groupProps}>
-      <primitive object={candleScene} />
-      <mesh ref={flameMeshRef} scale={0.4} position={[0, 2.9, 0]} material={flameMaterial}>
-        <sphereGeometry args={[0.5, 32, 32]} />
-      </mesh>
-      <pointLight ref={lightRef} distance={5} color="#ffffffff" decay={1} />
-      {children}
-    </group>
-  );
+   if (!candleScene) {
+      return null;
+   }
+
+   return (
+      <group {...groupProps}>
+         <primitive object={candleScene} />
+         <mesh ref={flameMeshRef} scale={0.4} position={[0, 2.9, 0]} material={flameMaterial}>
+            <sphereGeometry args={[0.5, 32, 32]} />
+         </mesh>
+         <pointLight ref={lightRef} distance={5} color="#ffffffff" decay={1} />
+         {children}
+      </group>
+   );
 }
