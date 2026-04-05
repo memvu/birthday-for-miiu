@@ -495,26 +495,62 @@ export default function App() {
       return () => window.clearInterval(handle);
    }, []);
 
+   const handleInteraction = useCallback(() => {
+      if (!hasStarted) {
+         playBackgroundMusic();
+         setHasStarted(true);
+         return;
+      }
+      if (hasAnimationCompleted && isCandleLit) {
+         setIsCandleLit(false);
+         setFireworksActive(true);
+      }
+   }, [hasStarted, hasAnimationCompleted, isCandleLit, playBackgroundMusic]);
+
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-         if (event.code !== "Space" && event.key !== " ") {
-            return;
-         }
-         event.preventDefault();
-         if (!hasStarted) {
-            playBackgroundMusic();
-            setHasStarted(true);
-            return;
-         }
-         if (hasAnimationCompleted && isCandleLit) {
-            setIsCandleLit(false);
-            setFireworksActive(true);
+         // Only trigger on Spacebar for keyboards
+         if (event.code === "Space" || event.key === " ") {
+            event.preventDefault();
+            handleInteraction();
          }
       };
 
+      const handleTouch = (event: PointerEvent) => {
+         // Prevent double-firing if they somehow tap and press space at the same time
+         event.preventDefault();
+         handleInteraction();
+      };
+
       window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-   }, [hasStarted, hasAnimationCompleted, isCandleLit, playBackgroundMusic]);
+      window.addEventListener("pointerdown", handleTouch);
+
+      return () => {
+         window.removeEventListener("keydown", handleKeyDown);
+         window.removeEventListener("pointerdown", handleTouch);
+      };
+   }, [handleInteraction]);
+
+   // useEffect(() => {
+   //    const handleKeyDown = (event: KeyboardEvent) => {
+   //       if (event.code !== "Space" && event.key !== " ") {
+   //          return;
+   //       }
+   //       event.preventDefault();
+   //       if (!hasStarted) {
+   //          playBackgroundMusic();
+   //          setHasStarted(true);
+   //          return;
+   //       }
+   //       if (hasAnimationCompleted && isCandleLit) {
+   //          setIsCandleLit(false);
+   //          setFireworksActive(true);
+   //       }
+   //    };
+   //
+   //    window.addEventListener("keydown", handleKeyDown);
+   //    return () => window.removeEventListener("keydown", handleKeyDown);
+   // }, [hasStarted, hasAnimationCompleted, isCandleLit, playBackgroundMusic]);
 
    const handleCardToggle = useCallback((id: string) => {
       setActiveCardId((current) => (current === id ? null : id));
@@ -548,7 +584,7 @@ export default function App() {
             </div>
          </div>
          {hasAnimationCompleted && isCandleLit && (
-            <div className="hint-overlay">press space to blow out the candle</div>
+            <div className="hint-overlay">tap to blow out the candle</div>
          )}
          <Canvas
             gl={{ alpha: true }}
