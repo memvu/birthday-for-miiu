@@ -102,7 +102,7 @@ type BirthdayCardConfig = {
 const BIRTHDAY_CARDS: ReadonlyArray<BirthdayCardConfig> = [
    {
       id: "confetti",
-      image: "/card.png",
+      image: "/birthdaygiftcard.jpg",
       position: [1, 0.081, -2],
       rotation: [-Math.PI / 2, 0, Math.PI / 3],
    }
@@ -283,8 +283,8 @@ function AnimatedScene({
             />
             <PictureFrame
                image="/frame4.jpg"
-               position={[-1.5, 0.735, 2.5]}
-               rotation={[0, 5.4, 0]}
+               position={[-1.5, 0.735, 2.3]}
+               rotation={[0, 5.0, 0]}
                scale={0.75}
             />
             <PictureFrame
