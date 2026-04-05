@@ -110,7 +110,6 @@ const BIRTHDAY_CARDS: ReadonlyArray<BirthdayCardConfig> = [
 
 function AnimatedScene({
    isPlaying,
-   environmentProgress,
    onBackgroundFadeChange,
    onEnvironmentProgressChange,
    candleLit,
